@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
+from .database_models import Base
+from .database import engine
 
 from .routes import days, faq, lessons, materials, occupations, timetable
 
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 app.include_router(days.router)
