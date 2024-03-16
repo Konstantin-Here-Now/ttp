@@ -7,3 +7,6 @@ class Notification(BaseModel):
     id: int
     type: NotificationType
     link: str
+
+    class ConfigDict:
+        from_attributes = True

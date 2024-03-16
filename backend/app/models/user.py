@@ -17,3 +17,6 @@ class User(BaseModel):
     is_admin: bool
     notifications: Optional[list[Notification]]
     occupations: Optional[list[Occupation]]
+
+    class ConfigDict:
+        from_attributes = True

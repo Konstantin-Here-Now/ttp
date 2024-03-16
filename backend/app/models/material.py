@@ -8,3 +8,6 @@ class Material(BaseModel):
     name: str
     desc: str
     link: str
+
+    class ConfigDict:
+        from_attributes = True

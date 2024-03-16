@@ -10,3 +10,6 @@ class Timetable(BaseModel):
     fri: Day
     sat: Day
     sun: Day
+
+    class ConfigDict:
+        from_attributes = True

@@ -17,3 +17,6 @@ class Occupation(BaseModel):
     reason: Reason
     created_at: datetime.datetime
     lesson: Optional[Lesson]
+
+    class ConfigDict:
+        from_attributes = True
