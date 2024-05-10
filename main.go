@@ -4,16 +4,17 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"slices"
 	"strconv"
-	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/ttp/json_additions"
 )
 
 type Day struct {
 	At   string
-	Date time.Time
+	Date json_additions.RFC3339DATE
 }
 
 type Timetable struct {
@@ -34,6 +35,7 @@ type Material struct {
 }
 
 var testMaterials []Material
+var testTimetable Timetable
 
 func main() {
 	port := 5432
@@ -59,10 +61,20 @@ func prepareTestData() {
 	testMaterials = append(testMaterials, Material{Id: 3, Name: "Video", Desc: ""})
 }
 
+func readJsonTimetable() {
+	dat, readErr := os.ReadFile("./timetable.json")
+	if readErr != nil {
+		log.Fatal("No timetable.json found")
+	}
+	parseErr := json.Unmarshal(dat, &testTimetable)
+	if parseErr != nil {
+		log.Fatal("Invalid json", parseErr)
+	}
+}
+
 func getTimetable(w http.ResponseWriter, r *http.Request) {
-	testDay := Day{At: "12:00 - 13:00", Date: time.Now()}
-	testTT := Timetable{Mon: testDay, Tue: testDay, Wed: testDay, Thu: testDay, Fri: testDay, Sat: testDay, Sun: testDay}
-	err := json.NewEncoder(w).Encode(testTT)
+	readJsonTimetable()
+	err := json.NewEncoder(w).Encode(testTimetable)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -79,10 +91,7 @@ func getMaterials(w http.ResponseWriter, r *http.Request) {
 
 func getMaterial(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id, parseErr := strconv.Atoi(vars["id"])
-	if parseErr != nil {
-		panic(parseErr)
-	}
+	id, _ := strconv.Atoi(vars["id"])
 
 	materialId := slices.IndexFunc(testMaterials, func(m Material) bool { return m.Id == id })
 	if materialId == -1 {
