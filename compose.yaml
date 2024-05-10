@@ -1,0 +1,36 @@
+services:
+ backend:
+  container_name: ttp-backend
+  build: ./backend
+  ports:
+   - "7777:7777"
+  networks:
+   - postgres
+
+ postgres:
+  container_name: ttp-postgres
+  image: postgres:16.2
+  env_file:
+    - ./db/.env
+  volumes:
+    - ./db:/docker-entrypoint-initdb.d 
+    - ./db/postgres-data:/var/lib/postgresql/data
+  healthcheck:
+    test: pg_isready -U admin -d ttpdb
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 10s
+    start_interval: 3s
+  restart: unless-stopped
+  deploy:
+    resources:
+      limits:
+        cpus: '1'
+        memory: 4G
+  networks:
+    - postgres
+
+networks:
+  postgres:
+    driver: bridge

@@ -38,7 +38,7 @@ var testMaterials []Material
 var testTimetable Timetable
 
 func main() {
-	port := 5432
+	port := 7777
 
 	prepareTestData()
 
