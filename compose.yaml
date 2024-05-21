@@ -4,17 +4,21 @@ services:
   build: ./backend
   ports:
    - "7777:7777"
+  depends_on: 
+   - db
   networks:
    - postgres
 
- postgres:
-  container_name: ttp-postgres
+ db:
+  container_name: ttp-db
   image: postgres:16.2
   env_file:
     - ./db/.env
   volumes:
     - ./db:/docker-entrypoint-initdb.d 
     - ./db/postgres-data:/var/lib/postgresql/data
+  ports:
+   - "5432:5432"
   healthcheck:
     test: pg_isready -U admin -d ttpdb
     interval: 10s

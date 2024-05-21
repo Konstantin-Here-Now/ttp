@@ -9,23 +9,8 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/ttp/json_additions"
+	"github.com/ttp/timing"
 )
-
-type Day struct {
-	At   string
-	Date json_additions.RFC3339DATE
-}
-
-type Timetable struct {
-	Mon Day
-	Tue Day
-	Wed Day
-	Thu Day
-	Fri Day
-	Sat Day
-	Sun Day
-}
 
 type Material struct {
 	Id   int
@@ -35,7 +20,7 @@ type Material struct {
 }
 
 var testMaterials []Material
-var testTimetable Timetable
+var testTimetable timing.Timetable
 
 func main() {
 	port := 7777
