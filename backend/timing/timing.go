@@ -46,6 +46,68 @@ func NewAt(commaSeparatedIntervals string) *AvailableTime {
 	return at
 }
 
+func (at *AvailableTime) Insert(interval Interval) {
+	for i := 0; i < len(at.Intervals); i++ {
+		atInterval := at.Intervals[i]
+		if HaveSameBeginnning(atInterval, interval) {
+			atInterval.Start = interval.End
+		} else if HaveSameEnding(atInterval, interval) {
+			atInterval.End = interval.Start
+		} else if SecondIntervalIsInTheMiddle(atInterval, interval) {
+			at.Intervals = InsertTwoNewIntervalsInTheMiddle(at.Intervals, i, atInterval, interval)
+			return
+		} else if SecondIntervalIsBigger(atInterval, interval) {
+			atInterval = *new(Interval)
+		}
+		at.Intervals[i] = atInterval
+	}
+	at.ClearNullIntervals()
+}
+
+func (at *AvailableTime) ClearNullIntervals() {
+	var newIntervals []Interval
+	for i := 0; i < len(at.Intervals); i++ {
+		atInterval := at.Intervals[i]
+		if atInterval == *new(Interval) {
+			continue
+		}
+		newIntervals = append(newIntervals, atInterval)
+	}
+	at.Intervals = newIntervals
+}
+
+func HaveSameBeginnning(first, second Interval) bool {
+	return first.Start >= second.Start && first.End > second.End && first.Start < second.End
+}
+
+func HaveSameEnding(first, second Interval) bool {
+	return first.Start < second.Start && first.End <= second.End && first.End > second.Start
+}
+
+func SecondIntervalIsInTheMiddle(first, second Interval) bool {
+	return first.Start < second.Start && first.End > second.End
+}
+
+func InsertTwoNewIntervalsInTheMiddle(where []Interval, place int, first, second Interval) []Interval {
+	before := where[:place]
+	var after []Interval
+	if len(where[place+1:]) > 0 {
+		after = make([]Interval, len(where[place+1:]))
+		copy(after, where[place+1:])
+	}
+
+	newFirstInterval := NewInterval(first.Start.String(), second.Start.String())
+	newSecondInterval := NewInterval(second.End.String(), first.End.String())
+	newIntervals := append(before, *newFirstInterval)
+	newIntervals = append(newIntervals, *newSecondInterval)
+	newIntervals = append(newIntervals, after...)
+	return newIntervals
+}
+
+func SecondIntervalIsBigger(first, second Interval) bool {
+	return first.Start >= second.Start && first.End <= second.End
+}
+
 type Day struct {
 	At   AvailableTime
 	Date json_additions.RFC3339DATE
