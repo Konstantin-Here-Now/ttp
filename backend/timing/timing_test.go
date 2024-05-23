@@ -29,6 +29,33 @@ func TestIntervalInitSingleString(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
+func TestEqualIntervalSlicesTrue(t *testing.T) {
+	testSlice1 := []Interval{*IntervalFromStr("12h-14h"), *IntervalFromStr("15h-18h")}
+	testSlice2 := []Interval{*IntervalFromStr("12h-14h"), *IntervalFromStr("15h-18h")}
+
+	got := EqualIntervalSlices(testSlice1, testSlice2)
+
+	assert.True(t, got)
+}
+
+func TestEqualIntervalSlicesFalse(t *testing.T) {
+	testSlice1 := []Interval{*IntervalFromStr("12h-14h"), *IntervalFromStr("15h-18h")}
+	testSlice2 := []Interval{*IntervalFromStr("9h-14h"), *IntervalFromStr("15h-20h")}
+
+	got := EqualIntervalSlices(testSlice1, testSlice2)
+
+	assert.False(t, got)
+}
+
+func TestEqualIntervalSlicesDifferentLength(t *testing.T) {
+	testSlice1 := []Interval{*IntervalFromStr("12h-14h"), *IntervalFromStr("15h-18h")}
+	testSlice2 := []Interval{*IntervalFromStr("9h-14h"), *IntervalFromStr("15h-20h"), *IntervalFromStr("19h-22h")}
+
+	got := EqualIntervalSlices(testSlice1, testSlice2)
+
+	assert.False(t, got)
+}
+
 func TestAvailableTimeInitGeneral(t *testing.T) {
 	got := NewAt("10h-12h30m,13h-14h").Intervals[0]
 	want := *IntervalFromStr("10h-12h30m")
@@ -163,6 +190,18 @@ func TestAtInsertManyBackwards(t *testing.T) {
 	want := NewAt("10h-12h30m,13h50m-14h")
 
 	assert.Equal(t, want, got)
+}
+
+func TestIsAtEqualTrue(t *testing.T) {
+	testAt := NewAt("10h-12h30m,13h-14h")
+	got := testAt.IsEqual(*NewAt("10h-12h30m,13h-14h"))
+	assert.True(t, got)
+}
+
+func TestIsAtEqualFalse(t *testing.T) {
+	testAt := NewAt("10h-12h30m,13h-14h")
+	got := testAt.IsEqual(*NewAt("9h-10h,13h-14h"))
+	assert.False(t, got)
 }
 
 func TestIsIntervalAvailableTrue(t *testing.T) {

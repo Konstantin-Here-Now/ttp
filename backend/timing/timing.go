@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mohae/deepcopy"
 	"github.com/ttp/json_additions"
 )
 
@@ -31,6 +32,18 @@ func NewInterval(start, end string) *Interval {
 func IntervalFromStr(intervalString string) *Interval {
 	splitted := strings.Split(intervalString, "-")
 	return NewInterval(splitted[0], splitted[1])
+}
+
+func EqualIntervalSlices(first, second []Interval) bool {
+	if len(first) != len(second) {
+		return false
+	}
+	for i := range first {
+		if first[i] != second[i] {
+			return false
+		}
+	}
+	return true
 }
 
 type AvailableTime struct {
@@ -114,6 +127,17 @@ func InsertTwoNewIntervalsInTheMiddle(where []Interval, place int, first, second
 
 func SecondIntervalIsBigger(first, second Interval) bool {
 	return first.Start >= second.Start && first.End <= second.End
+}
+
+func (at *AvailableTime) IsEqual(anotherAt AvailableTime) bool {
+	return EqualIntervalSlices(at.Intervals, anotherAt.Intervals)
+}
+
+func (at *AvailableTime) IsIntervalAvailable(interval Interval) bool {
+	atIntervalsCopy := deepcopy.Copy(at.Intervals).([]Interval)
+	atCopy := AvailableTime{Intervals: atIntervalsCopy}
+	atCopy.Insert(interval)
+	return !at.IsEqual(atCopy)
 }
 
 type Day struct {
