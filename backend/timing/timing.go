@@ -2,6 +2,7 @@ package timing
 
 import (
 	"log"
+	"reflect"
 	"strings"
 	"time"
 
@@ -27,7 +28,7 @@ func NewInterval(start, end string) *Interval {
 	return interval
 }
 
-func NewIntervalFromString(intervalString string) *Interval {
+func IntervalFromStr(intervalString string) *Interval {
 	splitted := strings.Split(intervalString, "-")
 	return NewInterval(splitted[0], splitted[1])
 }
@@ -40,10 +41,17 @@ func NewAt(commaSeparatedIntervals string) *AvailableTime {
 	at := new(AvailableTime)
 	intervals := strings.Split(commaSeparatedIntervals, ",")
 	for i := 0; i < len(intervals); i++ {
-		interval := NewIntervalFromString(intervals[i])
+		interval := IntervalFromStr(intervals[i])
 		at.Intervals = append(at.Intervals, *interval)
 	}
 	return at
+}
+
+func (at *AvailableTime) InsertMany(intervals []Interval) {
+	for i := 0; i < len(intervals); i++ {
+		interval := intervals[i]
+		at.Insert(interval)
+	}
 }
 
 func (at *AvailableTime) Insert(interval Interval) {
@@ -113,12 +121,36 @@ type Day struct {
 	Date json_additions.RFC3339DATE
 }
 
+func (day *Day) GetWeekday() time.Weekday {
+	date := time.Date(day.Date.Year, day.Date.Month, day.Date.Day, 0, 0, 0, 0, time.Local)
+	return date.Weekday()
+}
+
 type Timetable struct {
-	Mon Day
-	Tue Day
-	Wed Day
-	Thu Day
-	Fri Day
-	Sat Day
-	Sun Day
+	Monday    Day
+	Tuesday   Day
+	Wednesday Day
+	Thursday  Day
+	Friday    Day
+	Saturday  Day
+	Sunday    Day
+}
+
+func NewTimetable(days [7]Day) *Timetable {
+	tt := new(Timetable)
+	for i := 0; i < 7; i++ {
+		weekday := days[i].GetWeekday()
+		v := reflect.ValueOf(tt)
+		reflect.Indirect(v).FieldByName(weekday.String()).Set(reflect.ValueOf(days[i]))
+	}
+	return tt
+}
+
+func GetNextSevenDaysDates(today time.Time) [7]json_additions.RFC3339DATE {
+	var dates [7]json_additions.RFC3339DATE
+	for i := 0; i < 7; i++ {
+		date := today.AddDate(0, 0, i+1)
+		dates[i] = json_additions.RFC3339DATE{Year: date.Year(), Month: date.Month(), Day: date.Day()}
+	}
+	return dates
 }
