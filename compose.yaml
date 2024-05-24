@@ -5,7 +5,8 @@ services:
   ports:
    - "7777:7777"
   depends_on: 
-   - db
+    db:
+      condition: service_healthy
   networks:
    - postgres
 

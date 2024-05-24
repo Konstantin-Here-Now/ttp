@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -9,20 +10,18 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/ttp/database"
 	"github.com/ttp/timing"
 )
 
-type Material struct {
-	Id   int
-	Name string
-	Desc string
-	Url  string
-}
-
-var testMaterials []Material
+var testMaterials []database.Material
 var testTimetable timing.Timetable
 
 func main() {
+	db := database.Connect()
+	occupations := database.GetAllDefaultOccupations(db)
+	fmt.Println(occupations)
+
 	port := 7777
 
 	prepareTestData()
@@ -41,9 +40,9 @@ func main() {
 }
 
 func prepareTestData() {
-	testMaterials = append(testMaterials, Material{Id: 1, Name: "Book", Desc: "Interesting"})
-	testMaterials = append(testMaterials, Material{Id: 2, Name: "Paper", Desc: "Wonder"})
-	testMaterials = append(testMaterials, Material{Id: 3, Name: "Video", Desc: ""})
+	testMaterials = append(testMaterials, database.Material{Id: 1, Name: "Book", Desc: "Interesting"})
+	testMaterials = append(testMaterials, database.Material{Id: 2, Name: "Paper", Desc: "Wonder"})
+	testMaterials = append(testMaterials, database.Material{Id: 3, Name: "Video", Desc: ""})
 }
 
 func readJsonTimetable() {
@@ -78,7 +77,7 @@ func getMaterial(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, _ := strconv.Atoi(vars["id"])
 
-	materialId := slices.IndexFunc(testMaterials, func(m Material) bool { return m.Id == id })
+	materialId := slices.IndexFunc(testMaterials, func(m database.Material) bool { return m.Id == id })
 	if materialId == -1 {
 		http.NotFound(w, r)
 		return
