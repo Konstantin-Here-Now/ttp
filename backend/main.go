@@ -2,13 +2,16 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"slices"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/ttp/database"
 	"github.com/ttp/timing"
 )
 
@@ -23,6 +26,14 @@ var testMaterials []Material
 var testTimetable timing.Timetable
 
 func main() {
+	db := database.Connect()
+	database.SetDefaultOccupation(db,
+		database.DefaultOccupation{Day: time.Sunday.String(), At: "12h-18h", Date: time.Date(2024, time.May, 26, 0, 0, 0, 0, time.Local)})
+	occupations := database.GetDefaultOccupations(db)
+	fmt.Println(occupations)	
+	occupation := database.GetDefaultOccupation(db, time.Sunday.String())
+	fmt.Println(occupation)
+
 	port := 7777
 
 	prepareTestData()
