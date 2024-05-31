@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/ttp/json_additions"
 )
 
 func TestIntervalInitStart(t *testing.T) {
@@ -216,8 +215,22 @@ func TestIsIntervalAvailableFalse(t *testing.T) {
 	assert.False(t, got)
 }
 
+func TestGetDate(t *testing.T) {
+	got := GetDate(2024, time.May, 26)
+	want := time.Date(2024, time.May, 26, 0, 0, 0, 0, time.Local)
+
+	assert.Equal(t, want, got)
+}
+
+func TestGetTime(t *testing.T) {
+	got := GetTime(12, 30, 0)
+	want := time.Date(0, time.January, 0, 12, 30, 0, 0, time.Local)
+
+	assert.Equal(t, want, got)
+}
+
 func TestGetWeekday(t *testing.T) {
-	testDay := Day{At: *new(AvailableTime), Date: json_additions.RFC3339DATE{Year: 2024, Month: time.May, Day: 22}}
+	testDay := Day{At: *new(AvailableTime), Date: GetDate(2024, time.May, 22)}
 
 	got := testDay.GetWeekday()
 	want := time.Wednesday
@@ -227,54 +240,54 @@ func TestGetWeekday(t *testing.T) {
 
 func TestTimetableInit(t *testing.T) {
 	testDays := [7]Day{
-		{At: *NewAt("10h-18h"), Date: json_additions.RFC3339DATE{Year: 2024, Month: time.May, Day: 24}},
-		{At: *NewAt("10h-18h"), Date: json_additions.RFC3339DATE{Year: 2024, Month: time.May, Day: 27}},
-		{At: *NewAt("10h-18h"), Date: json_additions.RFC3339DATE{Year: 2024, Month: time.May, Day: 26}},
-		{At: *NewAt("10h-18h"), Date: json_additions.RFC3339DATE{Year: 2024, Month: time.May, Day: 23}},
-		{At: *NewAt("10h-18h"), Date: json_additions.RFC3339DATE{Year: 2024, Month: time.May, Day: 25}},
-		{At: *NewAt("10h-18h"), Date: json_additions.RFC3339DATE{Year: 2024, Month: time.May, Day: 22}},
-		{At: *NewAt("10h-18h"), Date: json_additions.RFC3339DATE{Year: 2024, Month: time.May, Day: 28}},
+		{At: *NewAt("10h-18h"), Date: GetDate(2024, time.May, 24)},
+		{At: *NewAt("10h-18h"), Date: GetDate(2024, time.May, 27)},
+		{At: *NewAt("10h-18h"), Date: GetDate(2024, time.May, 26)},
+		{At: *NewAt("10h-18h"), Date: GetDate(2024, time.May, 23)},
+		{At: *NewAt("10h-18h"), Date: GetDate(2024, time.May, 25)},
+		{At: *NewAt("10h-18h"), Date: GetDate(2024, time.May, 22)},
+		{At: *NewAt("10h-18h"), Date: GetDate(2024, time.May, 28)},
 	}
 
 	got := *NewTimetable(testDays)
 	want := Timetable{
-		Monday:    Day{At: *NewAt("10h-18h"), Date: json_additions.RFC3339DATE{Year: 2024, Month: time.May, Day: 27}},
-		Tuesday:   Day{At: *NewAt("10h-18h"), Date: json_additions.RFC3339DATE{Year: 2024, Month: time.May, Day: 28}},
-		Wednesday: Day{At: *NewAt("10h-18h"), Date: json_additions.RFC3339DATE{Year: 2024, Month: time.May, Day: 22}},
-		Thursday:  Day{At: *NewAt("10h-18h"), Date: json_additions.RFC3339DATE{Year: 2024, Month: time.May, Day: 23}},
-		Friday:    Day{At: *NewAt("10h-18h"), Date: json_additions.RFC3339DATE{Year: 2024, Month: time.May, Day: 24}},
-		Saturday:  Day{At: *NewAt("10h-18h"), Date: json_additions.RFC3339DATE{Year: 2024, Month: time.May, Day: 25}},
-		Sunday:    Day{At: *NewAt("10h-18h"), Date: json_additions.RFC3339DATE{Year: 2024, Month: time.May, Day: 26}},
+		Monday:    Day{At: *NewAt("10h-18h"), Date: time.Date(2024, time.May, 27, 0, 0, 0, 0, time.Local)},
+		Tuesday:   Day{At: *NewAt("10h-18h"), Date: time.Date(2024, time.May, 28, 0, 0, 0, 0, time.Local)},
+		Wednesday: Day{At: *NewAt("10h-18h"), Date: time.Date(2024, time.May, 22, 0, 0, 0, 0, time.Local)},
+		Thursday:  Day{At: *NewAt("10h-18h"), Date: time.Date(2024, time.May, 23, 0, 0, 0, 0, time.Local)},
+		Friday:    Day{At: *NewAt("10h-18h"), Date: time.Date(2024, time.May, 24, 0, 0, 0, 0, time.Local)},
+		Saturday:  Day{At: *NewAt("10h-18h"), Date: time.Date(2024, time.May, 25, 0, 0, 0, 0, time.Local)},
+		Sunday:    Day{At: *NewAt("10h-18h"), Date: time.Date(2024, time.May, 26, 0, 0, 0, 0, time.Local)},
 	}
 
 	assert.Equal(t, want, got)
 }
 
-func TestGetNearDates(t *testing.T) {
+func TestGetNextSevenDaysDates(t *testing.T) {
 	got := GetNextSevenDaysDates(time.Date(2024, time.May, 22, 0, 0, 0, 0, time.Local))
-	want := [7]json_additions.RFC3339DATE{
-		{Year: 2024, Month: time.May, Day: 23},
-		{Year: 2024, Month: time.May, Day: 24},
-		{Year: 2024, Month: time.May, Day: 25},
-		{Year: 2024, Month: time.May, Day: 26},
-		{Year: 2024, Month: time.May, Day: 27},
-		{Year: 2024, Month: time.May, Day: 28},
-		{Year: 2024, Month: time.May, Day: 29},
+	want := [7]time.Time{
+		time.Date(2024, time.May, 23, 0, 0, 0, 0, time.Local),
+		time.Date(2024, time.May, 24, 0, 0, 0, 0, time.Local),
+		time.Date(2024, time.May, 25, 0, 0, 0, 0, time.Local),
+		time.Date(2024, time.May, 26, 0, 0, 0, 0, time.Local),
+		time.Date(2024, time.May, 27, 0, 0, 0, 0, time.Local),
+		time.Date(2024, time.May, 28, 0, 0, 0, 0, time.Local),
+		time.Date(2024, time.May, 29, 0, 0, 0, 0, time.Local),
 	}
 
 	assert.Equal(t, want, got)
 }
 
-func TestGetNearDatesEndOfWeek(t *testing.T) {
+func TestGetNextSevenDaysDatesEndOfWeek(t *testing.T) {
 	got := GetNextSevenDaysDates(time.Date(2024, time.May, 26, 0, 0, 0, 0, time.Local))
-	want := [7]json_additions.RFC3339DATE{
-		{Year: 2024, Month: time.May, Day: 27},
-		{Year: 2024, Month: time.May, Day: 28},
-		{Year: 2024, Month: time.May, Day: 29},
-		{Year: 2024, Month: time.May, Day: 30},
-		{Year: 2024, Month: time.May, Day: 31},
-		{Year: 2024, Month: time.June, Day: 1},
-		{Year: 2024, Month: time.June, Day: 2},
+	want := [7]time.Time{
+		time.Date(2024, time.May, 27, 0, 0, 0, 0, time.Local),
+		time.Date(2024, time.May, 28, 0, 0, 0, 0, time.Local),
+		time.Date(2024, time.May, 29, 0, 0, 0, 0, time.Local),
+		time.Date(2024, time.May, 30, 0, 0, 0, 0, time.Local),
+		time.Date(2024, time.May, 31, 0, 0, 0, 0, time.Local),
+		time.Date(2024, time.June, 1, 0, 0, 0, 0, time.Local),
+		time.Date(2024, time.June, 2, 0, 0, 0, 0, time.Local),
 	}
 
 	assert.Equal(t, want, got)

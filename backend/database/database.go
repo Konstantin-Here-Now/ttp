@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
+	"github.com/ttp/timing"
 )
 
 func Connect() *sqlx.DB {
@@ -16,6 +17,18 @@ func Connect() *sqlx.DB {
 	}
 	db.MustExec(schema)
 	return db
+}
+
+func FillDefaultOccupation(db *sqlx.DB) {
+	dates := timing.GetNextSevenDaysDates(time.Now().Local())
+	for i := range dates {
+		occup := DefaultOccupation{
+			Date: dates[i],
+			Day:  dates[i].Weekday().String(),
+			At:   "12h-20h",
+		}
+		SetDefaultOccupation(db, occup)
+	}
 }
 
 func SetDefaultOccupation(db *sqlx.DB, occup DefaultOccupation) {
@@ -67,11 +80,20 @@ func GetDefaultOccupationChange(db *sqlx.DB, date time.Time) DefaultOccupationCh
 	return occupation
 }
 
-func AddOccupationType(db *sqlx.DB, t OccupationType) {
-	_, err := db.NamedExec("INSERT INTO occupation_type (\"type\") VALUES (:type);", &t)
+func AddOccupationType(db *sqlx.DB, occType string) {
+	_, err := db.NamedExec("INSERT INTO occupation_type (\"type\") VALUES (:occType);", occType)
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+func GetOccupationType(db *sqlx.DB, occType string) OccupationType {
+	o := OccupationType{}
+	err := db.Get(&o, "SELECT * FROM occupation_type WHERE \"type\" = $1", occType)
+	if err != nil {
+		log.Println(err)
+	}
+	return o
 }
 
 func GetAllOccupationTypes(db *sqlx.DB) []OccupationType {

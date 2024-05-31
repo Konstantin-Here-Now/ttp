@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/mohae/deepcopy"
-	"github.com/ttp/json_additions"
 )
 
 type Interval struct {
@@ -142,12 +141,11 @@ func (at *AvailableTime) IsIntervalAvailable(interval Interval) bool {
 
 type Day struct {
 	At   AvailableTime
-	Date json_additions.RFC3339DATE
+	Date time.Time
 }
 
 func (day *Day) GetWeekday() time.Weekday {
-	date := time.Date(day.Date.Year, day.Date.Month, day.Date.Day, 0, 0, 0, 0, time.Local)
-	return date.Weekday()
+	return day.Date.Weekday()
 }
 
 type Timetable struct {
@@ -170,11 +168,19 @@ func NewTimetable(days [7]Day) *Timetable {
 	return tt
 }
 
-func GetNextSevenDaysDates(today time.Time) [7]json_additions.RFC3339DATE {
-	var dates [7]json_additions.RFC3339DATE
+func GetNextSevenDaysDates(today time.Time) [7]time.Time {
+	var dates [7]time.Time
 	for i := 0; i < 7; i++ {
 		date := today.AddDate(0, 0, i+1)
-		dates[i] = json_additions.RFC3339DATE{Year: date.Year(), Month: date.Month(), Day: date.Day()}
+		dates[i] = GetDate(date.Year(), date.Month(), date.Day())
 	}
 	return dates
+}
+
+func GetDate (year int, month time.Month, day int) time.Time {
+	return time.Date(year, month, day, 0, 0, 0, 0, time.Local)
+}
+
+func GetTime (hour, minute, secods int) time.Time {
+	return time.Date(0, time.January, 0, hour, minute, secods, 0, time.Local)
 }

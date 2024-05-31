@@ -19,8 +19,11 @@ var testTimetable timing.Timetable
 
 func main() {
 	db := database.Connect()
-	occupations := database.GetAllDefaultOccupations(db)
-	fmt.Println(occupations)
+	database.FillDefaultOccupation(db)
+	defOccups := database.GetAllDefaultOccupations(db)
+	for i := range defOccups {
+		fmt.Println(defOccups[i])
+	}
 
 	port := 7777
 
