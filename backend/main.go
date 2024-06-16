@@ -1,95 +1,39 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"slices"
 	"strconv"
 
+	"github.com/gookit/config/v2"
 	"github.com/gorilla/mux"
-	"github.com/ttp/database"
-	"github.com/ttp/timing"
+	db "github.com/ttp/database"
+	"github.com/ttp/handlers"
 )
 
-var testMaterials []database.Material
-var testTimetable timing.Timetable
-
 func main() {
-	db := database.Connect()
-	database.FillDefaultOccupation(db)
-	defOccups := database.GetAllDefaultOccupations(db)
-	for i := range defOccups {
-		fmt.Println(defOccups[i])
+	config.AddDriver(config.JSONDriver)
+	err := config.LoadFiles("settings.json")
+	if err != nil {
+		panic(err)
 	}
 
-	port := 7777
-
-	prepareTestData()
+	db.DBConn = db.Connect()
+	err = db.FillDefaultOccupation(db.DBConn)
+	if err != nil {
+		panic(err)
+	}
 
 	router := mux.NewRouter()
-	router.HandleFunc("/timetable/", getTimetable).Methods("GET")
-	router.HandleFunc("/materials/", getMaterials).Methods("GET")
-	router.HandleFunc("/materials/{id:[0-9]+}", getMaterial).Methods("GET")
+	router.HandleFunc("/timetable", handlers.GetTimetable).Methods("GET")
+	router.HandleFunc("/occtype", handlers.OccTypeHandler).Methods("GET", "POST")
+	router.HandleFunc("/occtype/{id}", handlers.OccTypeHandler).Methods("GET", "PUT")
 
-	log.Printf("Server stated listening on port %d", port)
+	port := config.Int("Port")
 	addr := ":" + strconv.Itoa(port)
-	err := http.ListenAndServe(addr, router)
+	log.Printf("Server stated listening on port %d", port)
+	err = http.ListenAndServe(addr, router)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
-	}
-}
-
-func prepareTestData() {
-	testMaterials = append(testMaterials, database.Material{Id: 1, Name: "Book", Desc: "Interesting"})
-	testMaterials = append(testMaterials, database.Material{Id: 2, Name: "Paper", Desc: "Wonder"})
-	testMaterials = append(testMaterials, database.Material{Id: 3, Name: "Video", Desc: ""})
-}
-
-func readJsonTimetable() {
-	dat, readErr := os.ReadFile("./timetable.json")
-	if readErr != nil {
-		log.Fatal("No timetable.json found")
-	}
-	parseErr := json.Unmarshal(dat, &testTimetable)
-	if parseErr != nil {
-		log.Fatal("Invalid json", parseErr)
-	}
-}
-
-func getTimetable(w http.ResponseWriter, r *http.Request) {
-	readJsonTimetable()
-	err := json.NewEncoder(w).Encode(testTimetable)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func getMaterials(w http.ResponseWriter, r *http.Request) {
-	err := json.NewEncoder(w).Encode(testMaterials)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func getMaterial(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, _ := strconv.Atoi(vars["id"])
-
-	materialId := slices.IndexFunc(testMaterials, func(m database.Material) bool { return m.Id == id })
-	if materialId == -1 {
-		http.NotFound(w, r)
-		return
-	}
-
-	material := testMaterials[materialId]
-	err := json.NewEncoder(w).Encode(material)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 }
